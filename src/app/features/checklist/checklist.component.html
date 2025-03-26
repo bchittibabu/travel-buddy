@@ -1,0 +1,190 @@
+<div class="checklist-container">
+  <div class="page-header">
+    <h1>Travel Checklist</h1>
+    <p>Keep track of everything you need for your trip</p>
+  </div>
+
+  <div class="progress-section">
+    <mat-card>
+      <mat-card-content>
+        <div class="total-progress">
+          <h2>Overall Progress</h2>
+          <mat-progress-bar mode="determinate" [value]="getTotalProgress()"></mat-progress-bar>
+          <p class="progress-text">{{ getTotalProgress() }}% Complete</p>
+        </div>
+        <div class="categories-progress">
+          <div class="category-progress" *ngFor="let category of checklist">
+            <div class="category-header">
+              <mat-icon>{{ getCategoryIcon(category.name) }}</mat-icon>
+              <span>{{ getCategoryLabel(category.name) }}</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="getProgress(category)"></mat-progress-bar>
+            <span class="progress-count">{{ getCompletedItems(category) }}/{{ category.items.length }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="checklist-content">
+    <!-- Add Item Form -->
+    <div class="add-item-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>add_circle</mat-icon> Add Item to Checklist
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="itemForm" (ngSubmit)="addItem()">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="item-text-field">
+                <mat-label>Item description</mat-label>
+                <input matInput formControlName="text" placeholder="e.g., Passport">
+              </mat-form-field>
+            </div>
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Category</mat-label>
+                <mat-select formControlName="category">
+                  <mat-option *ngFor="let category of categories" [value]="category.name">
+                    <mat-icon>{{ category.icon }}</mat-icon> {{ category.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Priority</mat-label>
+                <mat-select formControlName="priority">
+                  <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+                    {{ priority.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Notes</mat-label>
+                <textarea matInput formControlName="notes" rows="2" placeholder="Any additional information"></textarea>
+              </mat-form-field>
+            </div>
+            <div class="form-row actions">
+              <button type="submit" mat-raised-button color="primary" [disabled]="itemForm.invalid">
+                <mat-icon>add</mat-icon> Add Item
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Checklist Items -->
+    <div class="categories-section">
+      <mat-accordion multi>
+        <mat-expansion-panel *ngFor="let category of checklist" [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div class="panel-title-content">
+                <mat-icon>{{ getCategoryIcon(category.name) }}</mat-icon>
+                <span>{{ getCategoryLabel(category.name) }}</span>
+                <span class="item-count">{{ getCompletedItems(category) }}/{{ category.items.length }}</span>
+              </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="items-list" cdkDropList (cdkDropListDropped)="onDrop($event, category.items)">
+            <div *ngIf="category.items.length === 0" class="no-items">
+              <p>No items in this category</p>
+            </div>
+
+            <div *ngFor="let item of category.items"
+                class="checklist-item"
+                [class.completed]="item.completed"
+                [class.editing]="editingItemId === item.id"
+                [class.priority-high]="item.priority === 'high'"
+                [class.priority-medium]="item.priority === 'medium'"
+                [class.priority-low]="item.priority === 'low'"
+                cdkDrag>
+              <div class="item-content" *ngIf="editingItemId !== item.id">
+                <div class="drag-handle" cdkDragHandle>
+                  <mat-icon>drag_indicator</mat-icon>
+                </div>
+                <mat-checkbox [checked]="item.completed" (change)="toggleComplete(item)" color="primary">
+                  {{ item.text }}
+                </mat-checkbox>
+                <div class="item-details" *ngIf="item.notes">
+                  <mat-icon>sticky_note_2</mat-icon>
+                  <span>{{ item.notes }}</span>
+                </div>
+                <div class="priority-badge" [ngClass]="'priority-' + item.priority">
+                  {{ item.priority }}
+                </div>
+                <div class="item-actions">
+                  <button mat-icon-button color="primary" (click)="editItem(item)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteItem(item.id)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Edit Form -->
+              <div class="edit-form" *ngIf="editingItemId === item.id">
+                <form [formGroup]="editItemForm" (ngSubmit)="updateItem()">
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Item description</mat-label>
+                      <input matInput formControlName="text">
+                    </mat-form-field>
+                  </div>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Category</mat-label>
+                      <mat-select formControlName="category">
+                        <mat-option *ngFor="let cat of categories" [value]="cat.name">
+                          <mat-icon>{{ cat.icon }}</mat-icon> {{ cat.label }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Priority</mat-label>
+                      <mat-select formControlName="priority">
+                        <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+                          {{ priority.label }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Notes</mat-label>
+                      <textarea matInput formControlName="notes" rows="2"></textarea>
+                    </mat-form-field>
+                  </div>
+                  <div class="form-row actions">
+                    <mat-checkbox formControlName="completed" color="primary">
+                      Mark as completed
+                    </mat-checkbox>
+                    <div class="edit-buttons">
+                      <button type="button" mat-button (click)="cancelEdit()">Cancel</button>
+                      <button type="submit" mat-raised-button color="primary" [disabled]="editItemForm.invalid">
+                        Update
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </div>
+  </div>
+
+  <!-- Print Version Button -->
+  <div class="print-section">
+    <button mat-raised-button color="primary" class="print-button">
+      <mat-icon>print</mat-icon> Print Checklist
+    </button>
+  </div>
+</div>

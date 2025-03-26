@@ -1,0 +1,63 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav" fixedInViewport
+    [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+    [mode]="(isHandset$ | async) ? 'over' : 'side'"
+    [opened]="(isHandset$ | async) === false">
+    <mat-toolbar color="primary">
+      <img src="assets/images/logo.png" alt="TravelBuddy Logo" class="logo">
+      <span>TravelBuddy</span>
+    </mat-toolbar>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
+        <mat-icon>dashboard</mat-icon> Dashboard
+      </a>
+      <a mat-list-item routerLink="/trips" routerLinkActive="active">
+        <mat-icon>flight_takeoff</mat-icon> My Trips
+      </a>
+      <a mat-list-item routerLink="/itinerary" routerLinkActive="active">
+        <mat-icon>event_note</mat-icon> Itinerary Planner
+      </a>
+      <a mat-list-item routerLink="/currency" routerLinkActive="active">
+        <mat-icon>currency_exchange</mat-icon> Currency Converter
+      </a>
+      <a mat-list-item routerLink="/food" routerLinkActive="active">
+        <mat-icon>restaurant_menu</mat-icon> Local Cuisines
+      </a>
+      <a mat-list-item routerLink="/transport" routerLinkActive="active">
+        <mat-icon>directions_transit</mat-icon> Transportation
+      </a>
+      <a mat-list-item routerLink="/checklist" routerLinkActive="active">
+        <mat-icon>checklist</mat-icon> Travel Checklist
+      </a>
+      <a mat-list-item routerLink="/settings" routerLinkActive="active">
+        <mat-icon>settings</mat-icon> Settings
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="top-toolbar">
+      <button
+        type="button"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        (click)="drawer.toggle()"
+        *ngIf="isHandset$ | async">
+        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+      </button>
+      <span class="spacer"></span>
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Search trips, destinations...">
+      </div>
+      <button mat-icon-button aria-label="Notifications">
+        <mat-icon>notifications</mat-icon>
+      </button>
+      <button mat-icon-button aria-label="User menu">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+    </mat-toolbar>
+    <div class="content-container">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

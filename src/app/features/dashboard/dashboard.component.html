@@ -1,0 +1,132 @@
+<div class="dashboard-container">
+  <div class="welcome-section">
+    <h1>Welcome to TravelBuddy</h1>
+    <p>Plan, organize, and enjoy your international travels with ease</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Upcoming Trips -->
+    <mat-card class="dashboard-card trip-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>flight_takeoff</mat-icon> Upcoming Trips
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="trip-list">
+          <div *ngFor="let trip of upcomingTrips" class="trip-item">
+            <img [src]="trip.image" alt="{{trip.destination}}" class="trip-image">
+            <div class="trip-details">
+              <h3>{{trip.destination}}</h3>
+              <p>{{getTripDates(trip)}}</p>
+              <button mat-button color="primary" [routerLink]="['/trips', trip.id]">View Details</button>
+            </div>
+          </div>
+          <div class="add-trip">
+            <button mat-raised-button color="primary" routerLink="/trips/new">
+              <mat-icon>add</mat-icon> Plan a New Trip
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Currency Conversion -->
+    <mat-card class="dashboard-card currency-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>attach_money</mat-icon> Quick Currency Conversion
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="currency-converter">
+          <mat-form-field appearance="outline">
+            <mat-label>Amount</mat-label>
+            <input matInput type="number" placeholder="1.00" value="1">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>From</mat-label>
+            <mat-select value="USD">
+              <mat-option value="USD">USD - US Dollar</mat-option>
+              <mat-option *ngFor="let currency of recentCurrencies" [value]="currency.code">
+                {{currency.code}} - {{currency.name}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-icon-button color="primary">
+            <mat-icon>swap_horiz</mat-icon>
+          </button>
+
+          <mat-form-field appearance="outline">
+            <mat-label>To</mat-label>
+            <mat-select value="EUR">
+              <mat-option *ngFor="let currency of recentCurrencies" [value]="currency.code">
+                {{currency.code}} - {{currency.name}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="conversion-result">
+            <p>1 USD = 0.93 EUR</p>
+          </div>
+
+          <button mat-button color="primary" routerLink="/currency">Go to Full Converter</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Upcoming Tasks -->
+    <mat-card class="dashboard-card checklist-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>check_circle</mat-icon> Travel Checklist
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="task-list">
+          <mat-list>
+            <mat-list-item *ngFor="let task of getUpcomingTasks()">
+              <mat-checkbox [checked]="task.isCompleted" color="primary"></mat-checkbox>
+              <span [class.completed]="task.isCompleted">{{task.task}}</span>
+              <span class="task-due-date">Due: {{task.dueDate | date:'mediumDate'}}</span>
+            </mat-list-item>
+          </mat-list>
+          <button mat-button color="primary" routerLink="/checklist">View Complete Checklist</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Weather Widget -->
+    <mat-card class="dashboard-card weather-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>wb_sunny</mat-icon> Weather at Your Destinations
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="weather-grid">
+          <div class="weather-item">
+            <h3>Paris</h3>
+            <mat-icon>{{weatherData.paris.icon}}</mat-icon>
+            <p class="temp">{{weatherData.paris.temp}}°C</p>
+            <p>{{weatherData.paris.condition}}</p>
+          </div>
+          <div class="weather-item">
+            <h3>Tokyo</h3>
+            <mat-icon>{{weatherData.tokyo.icon}}</mat-icon>
+            <p class="temp">{{weatherData.tokyo.temp}}°C</p>
+            <p>{{weatherData.tokyo.condition}}</p>
+          </div>
+          <div class="weather-item">
+            <h3>Cancun</h3>
+            <mat-icon>{{weatherData.cancun.icon}}</mat-icon>
+            <p class="temp">{{weatherData.cancun.temp}}°C</p>
+            <p>{{weatherData.cancun.condition}}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

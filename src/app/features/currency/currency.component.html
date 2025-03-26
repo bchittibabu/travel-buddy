@@ -1,0 +1,196 @@
+<div class="currency-container">
+  <div class="page-header">
+    <h1>Currency Converter</h1>
+    <p>Convert between different currencies for your international travel needs</p>
+  </div>
+
+  <div class="converter-content">
+    <div class="converter-card">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>currency_exchange</mat-icon> Currency Converter
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="currencyForm" (ngSubmit)="convertCurrency()">
+            <div class="converter-form">
+              <!-- Amount Input -->
+              <mat-form-field appearance="outline" class="amount-field">
+                <mat-label>Amount</mat-label>
+                <input matInput type="number" formControlName="amount" min="0.01" step="0.01">
+                <mat-error *ngIf="currencyForm.get('amount')?.hasError('required')">
+                  Amount is required
+                </mat-error>
+                <mat-error *ngIf="currencyForm.get('amount')?.hasError('min')">
+                  Amount must be greater than 0
+                </mat-error>
+              </mat-form-field>
+
+              <!-- From Currency -->
+              <mat-form-field appearance="outline">
+                <mat-label>From</mat-label>
+                <mat-select formControlName="fromCurrency">
+                  <mat-option *ngFor="let currency of currencies" [value]="currency.code">
+                    {{ currency.code }} - {{ currency.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Swap Button -->
+              <button
+                type="button"
+                mat-mini-fab
+                color="primary"
+                class="swap-button"
+                (click)="swapCurrencies()"
+                aria-label="Swap currencies">
+                <mat-icon>swap_horiz</mat-icon>
+              </button>
+
+              <!-- To Currency -->
+              <mat-form-field appearance="outline">
+                <mat-label>To</mat-label>
+                <mat-select formControlName="toCurrency">
+                  <mat-option *ngFor="let currency of currencies" [value]="currency.code">
+                    {{ currency.code }} - {{ currency.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Convert Button -->
+              <div class="button-container">
+                <button
+                  type="submit"
+                  mat-raised-button
+                  color="primary"
+                  [disabled]="currencyForm.invalid || isLoading">
+                  <mat-icon>calculate</mat-icon> Convert
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Loading Spinner -->
+          <div class="loading-container" *ngIf="isLoading">
+            <mat-progress-spinner
+              color="primary"
+              mode="indeterminate"
+              diameter="40">
+            </mat-progress-spinner>
+          </div>
+
+          <!-- Error Message -->
+          <div class="error-message" *ngIf="error">
+            <mat-icon color="warn">error</mat-icon>
+            <span>{{ error }}</span>
+          </div>
+
+          <!-- Result Display -->
+          <div class="result-container" *ngIf="result && !isLoading">
+            <h2>Conversion Result</h2>
+            <div class="result-box">
+              <div class="amount">
+                {{ getCurrencySymbol(currencyForm.value.fromCurrency) }}{{ currencyForm.value.amount }}
+                ({{ currencyForm.value.fromCurrency }})
+              </div>
+              <mat-icon>arrow_forward</mat-icon>
+              <div class="result">
+                {{ getCurrencySymbol(currencyForm.value.toCurrency) }}{{ result }}
+                ({{ currencyForm.value.toCurrency }})
+              </div>
+            </div>
+            <div class="exchange-rate">
+              <small>
+                Exchange rate: 1 {{ currencyForm.value.fromCurrency }} =
+                {{ getExchangeRate(currencyForm.value.fromCurrency, currencyForm.value.toCurrency).toFixed(4) }}
+                {{ currencyForm.value.toCurrency }}
+              </small>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Recent Conversions Card -->
+    <div class="history-card">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>history</mat-icon> Recent Conversions
+          </mat-card-title>
+          <button
+            mat-icon-button
+            color="warn"
+            class="clear-button"
+            *ngIf="recentConversions.length > 0"
+            (click)="clearHistory()"
+            aria-label="Clear history">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list *ngIf="recentConversions.length > 0; else noHistory">
+            <mat-list-item *ngFor="let conversion of recentConversions">
+              <div class="history-item">
+                <div>
+                  <span class="amount">
+                    {{ getCurrencySymbol(conversion.fromCurrency) }}{{ conversion.amount }}
+                    ({{ conversion.fromCurrency }})
+                  </span>
+                  <mat-icon>arrow_right_alt</mat-icon>
+                  <span class="result">
+                    {{ getCurrencySymbol(conversion.toCurrency) }}{{ conversion.result }}
+                    ({{ conversion.toCurrency }})
+                  </span>
+                </div>
+                <small class="date">{{ formatDate(conversion.date) }}</small>
+              </div>
+            </mat-list-item>
+          </mat-list>
+          <ng-template #noHistory>
+            <div class="no-history">
+              <mat-icon color="disabled">info</mat-icon>
+              <p>No recent conversions</p>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Travel Tips Card -->
+    <div class="tips-card">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>lightbulb</mat-icon> Currency Tips for Travelers
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list>
+            <mat-list-item>
+              <mat-icon matListItemIcon>check_circle</mat-icon>
+              <div matListItemTitle>Always check for currency exchange fees</div>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-icon matListItemIcon>check_circle</mat-icon>
+              <div matListItemTitle>Consider using a travel card with no foreign transaction fees</div>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-icon matListItemIcon>check_circle</mat-icon>
+              <div matListItemTitle>ATMs often offer better rates than airport exchange bureaus</div>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-icon matListItemIcon>check_circle</mat-icon>
+              <div matListItemTitle>Notify your bank of travel plans to avoid card blocks</div>
+            </mat-list-item>
+            <mat-list-item>
+              <mat-icon matListItemIcon>check_circle</mat-icon>
+              <div matListItemTitle>Keep some local currency for emergencies and small purchases</div>
+            </mat-list-item>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

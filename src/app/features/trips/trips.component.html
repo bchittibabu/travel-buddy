@@ -1,0 +1,278 @@
+<div class="trips-container">
+  <div class="page-header">
+    <h1>My Trips</h1>
+    <p>Manage your travel plans and adventures</p>
+  </div>
+
+  <!-- Stats Dashboard -->
+  <div class="stats-dashboard">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>flight</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalTrips }}</div>
+        <div class="stat-label">Total Trips</div>
+      </div>
+    </div>
+    <div class="stat-card upcoming">
+      <div class="stat-icon">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ upcomingTrips }}</div>
+        <div class="stat-label">Upcoming</div>
+      </div>
+    </div>
+    <div class="stat-card completed">
+      <div class="stat-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ completedTrips }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+    <div class="stat-card cancelled">
+      <div class="stat-icon">
+        <mat-icon>cancel</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ cancelledTrips }}</div>
+        <div class="stat-label">Cancelled</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trips-content">
+    <!-- Trip List Section -->
+    <div class="trips-list-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>map</mat-icon> Your Trips
+          </mat-card-title>
+          <div class="trip-actions">
+            <div class="search-box">
+              <mat-icon>search</mat-icon>
+              <input
+                type="text"
+                placeholder="Search trips..."
+                [(ngModel)]="searchQuery"
+                (keyup)="applyFilters()">
+            </div>
+            <button mat-button [matMenuTriggerFor]="filterMenu">
+              <mat-icon>filter_list</mat-icon> Filter
+            </button>
+            <mat-menu #filterMenu="matMenu">
+              <button mat-menu-item (click)="filterByStatus('all')">
+                <mat-icon>all_inclusive</mat-icon> All Trips
+              </button>
+              <button mat-menu-item (click)="filterByStatus('upcoming')">
+                <mat-icon>schedule</mat-icon> Upcoming
+              </button>
+              <button mat-menu-item (click)="filterByStatus('ongoing')">
+                <mat-icon>flight_takeoff</mat-icon> Ongoing
+              </button>
+              <button mat-menu-item (click)="filterByStatus('completed')">
+                <mat-icon>check_circle</mat-icon> Completed
+              </button>
+              <button mat-menu-item (click)="filterByStatus('cancelled')">
+                <mat-icon>cancel</mat-icon> Cancelled
+              </button>
+            </mat-menu>
+            <button mat-button [matMenuTriggerFor]="sortMenu">
+              <mat-icon>sort</mat-icon> Sort
+            </button>
+            <mat-menu #sortMenu="matMenu">
+              <button mat-menu-item (click)="sortTrips('startDate')">
+                <mat-icon>date_range</mat-icon> By Date
+              </button>
+              <button mat-menu-item (click)="sortTrips('name')">
+                <mat-icon>sort_by_alpha</mat-icon> By Name
+              </button>
+              <button mat-menu-item (click)="sortTrips('destination')">
+                <mat-icon>place</mat-icon> By Destination
+              </button>
+              <button mat-menu-item (click)="sortTrips('duration')">
+                <mat-icon>timelapse</mat-icon> By Duration
+              </button>
+            </mat-menu>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="trips-grid">
+            <div *ngIf="filteredTrips.length === 0" class="no-trips">
+              <mat-icon>flight_land</mat-icon>
+              <p>No trips found</p>
+              <p>Add a new trip to get started</p>
+            </div>
+
+            <mat-card *ngFor="let trip of filteredTrips" class="trip-card">
+              <div class="trip-image">
+                <img [src]="trip.image || 'assets/images/default-trip.jpg'" alt="{{ trip.destination }}">
+                <div class="trip-status" [ngClass]="trip.status">
+                  <mat-icon>{{ getTripStatusIcon(trip.status) }}</mat-icon>
+                  <span>{{ getTripStatus(trip) }}</span>
+                </div>
+              </div>
+              <div class="trip-details">
+                <h3>{{ trip.name }}</h3>
+                <div class="trip-destination">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ trip.destination }}</span>
+                </div>
+                <div class="trip-dates">
+                  <mat-icon>event</mat-icon>
+                  <span>{{ trip.startDate | date:'mediumDate' }} - {{ trip.endDate | date:'mediumDate' }}</span>
+                </div>
+                <div class="trip-duration">
+                  <mat-icon>timelapse</mat-icon>
+                  <span>{{ getDurationInDays(trip.startDate, trip.endDate) }} days</span>
+                </div>
+                <div class="trip-tags" *ngIf="trip.tags && trip.tags.length > 0">
+                  <mat-chip-listbox aria-label="Trip tags">
+                    <mat-chip-option *ngFor="let tag of trip.tags" disableRipple selected>{{ tag }}</mat-chip-option>
+                  </mat-chip-listbox>
+                </div>
+                <p class="trip-description" *ngIf="trip.description">{{ trip.description }}</p>
+              </div>
+              <div class="trip-actions">
+                <button mat-icon-button color="primary" matTooltip="View Trip Details">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="primary" matTooltip="Edit Trip" (click)="editTrip(trip)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Delete Trip" (click)="deleteTrip(trip.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </mat-card>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Add/Edit Trip Form -->
+    <div class="trip-form-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>{{ isEditing ? 'edit' : 'add_circle' }}</mat-icon>
+            {{ isEditing ? 'Edit Trip' : 'Plan a New Trip' }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="tripForm" (ngSubmit)="isEditing ? updateTrip() : addTrip()">
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Trip Name</mat-label>
+                <input matInput formControlName="name" placeholder="e.g., Summer in Paris">
+                <mat-error *ngIf="tripForm.get('name')?.hasError('required')">
+                  Trip name is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Destination</mat-label>
+                <input matInput formControlName="destination" placeholder="e.g., Paris, France">
+                <mat-autocomplete>
+                  <mat-option *ngFor="let dest of popularDestinations" [value]="dest.name">
+                    {{ dest.name }}
+                  </mat-option>
+                </mat-autocomplete>
+                <mat-error *ngIf="tripForm.get('destination')?.hasError('required')">
+                  Destination is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row date-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Start Date</mat-label>
+                <input matInput type="date" formControlName="startDate">
+                <mat-error *ngIf="tripForm.get('startDate')?.hasError('required')">
+                  Start date is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>End Date</mat-label>
+                <input matInput type="date" formControlName="endDate">
+                <mat-error *ngIf="tripForm.get('endDate')?.hasError('required')">
+                  End date is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-error *ngIf="tripForm.hasError('dateRange')" class="date-range-error">
+                End date must be after start date
+              </mat-error>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" rows="3" placeholder="Add details about your trip"></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Tags</mat-label>
+                <input matInput formControlName="tags" placeholder="e.g., beach, family, adventure (comma separated)">
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Image URL</mat-label>
+                <input matInput formControlName="image" placeholder="URL to trip image (optional)">
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option value="upcoming">Upcoming</mat-option>
+                  <mat-option value="ongoing">Ongoing</mat-option>
+                  <mat-option value="completed">Completed</mat-option>
+                  <mat-option value="cancelled">Cancelled</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row actions">
+              <button type="button" mat-button (click)="cancelEdit()" *ngIf="isEditing">
+                Cancel
+              </button>
+              <button type="submit" mat-raised-button color="primary" [disabled]="tripForm.invalid">
+                {{ isEditing ? 'Update Trip' : 'Add Trip' }}
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Popular Destinations -->
+      <mat-card class="destinations-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>explore</mat-icon> Popular Destinations
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="destinations-grid">
+            <div class="destination-item" *ngFor="let destination of popularDestinations">
+              <img [src]="destination.image" [alt]="destination.name">
+              <div class="destination-name">{{ destination.name }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
